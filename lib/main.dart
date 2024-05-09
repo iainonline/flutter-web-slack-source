@@ -138,7 +138,7 @@ class _MyAppState extends State<MyApp> {
               ),
               Text(
                 'Recording Result',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               Container(
                 margin: EdgeInsets.symmetric(vertical: 10.0),
