@@ -62,6 +62,15 @@ class _MyAppState extends State<MyApp> {
       final url = html.Url.createObjectUrl(blob);
       _result.src = url;
 
+      final anchor = html.AnchorElement()
+      ..href = _result.src
+      ..style.display = 'none'
+      ..download = 'recording.webm';
+      html.document.body!.children.add(anchor);
+      anchor.click();
+      html.document.body!.children.remove(anchor);
+      html.Url.revokeObjectUrl(_result.src);
+
       stream.getTracks().forEach((track) {
         if (track.readyState == 'live') {
           track.stop();
@@ -70,21 +79,10 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void stopRecording() => _recorder.stop();
-
-  // create a function called saveRecording
-  void saveRecording() {
-    final blob = html.Blob([_recorder.stream], 'video/webm');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement()
-      ..href = url
-      ..style.display = 'none'
-      ..download = 'recording.webm';
-    html.document.body!.children.add(anchor);
-    anchor.click();
-    html.document.body!.children.remove(anchor);
-    html.Url.revokeObjectUrl(url);
+  void stopRecording() {
+    _recorder.stop();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +93,7 @@ class _MyAppState extends State<MyApp> {
       ),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Flutter Web Recording'),
+          title: Text('Flutter Web Recording Demo'),
         ),
         body: Center(
           child: Column(
@@ -104,7 +102,7 @@ class _MyAppState extends State<MyApp> {
             children: [
               Text(
                 'Recording Preview',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               Container(
                 margin: EdgeInsets.symmetric(vertical: 10.0),
@@ -133,7 +131,7 @@ class _MyAppState extends State<MyApp> {
                     ),
                     ElevatedButton(
                       onPressed: () => stopRecording(),
-                      child: Text('Stop Recording'),
+                      child: Text('Stop & save video'),
                     ),
                   ],
                 ),
