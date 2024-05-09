@@ -1,14 +1,6 @@
-<<<<<<< HEAD
-# flutter-web-slack-source
-Source code for the web application held at flutter-web-slack
-=======
-# video_recorder_app
-
-A new Flutter project.
-
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This project is a starting point for a Flutter application which records video and saves it locally
 
 A few resources to get you started if this is your first Flutter project:
 
