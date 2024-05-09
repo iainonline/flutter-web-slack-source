@@ -72,6 +72,20 @@ class _MyAppState extends State<MyApp> {
 
   void stopRecording() => _recorder.stop();
 
+  // create a function called saveRecording
+  void saveRecording() {
+    final blob = html.Blob([_recorder.stream], 'video/webm');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement()
+      ..href = url
+      ..style.display = 'none'
+      ..download = 'recording.webm';
+    html.document.body!.children.add(anchor);
+    anchor.click();
+    html.document.body!.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
