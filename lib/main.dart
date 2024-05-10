@@ -1,3 +1,4 @@
+//import 'dart:developer';
 import 'dart:html' as html;
 import 'dart:js' as js;
 import 'dart:ui' as ui;
@@ -17,6 +18,7 @@ class _MyAppState extends State<MyApp> {
   late html.VideoElement _preview;
   late html.MediaRecorder _recorder;
   late html.VideoElement _result;
+  late html.ImageElement _image;
 
   @override
   void initState() {
@@ -34,28 +36,53 @@ class _MyAppState extends State<MyApp> {
       ..height = html.window.innerHeight!
       ..controls = true;
 
+    _image = html.ImageElement();
+
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory('preview', (int _) => _preview);
 
     // ignore: undefined_prefixed_name
     ui.platformViewRegistry.registerViewFactory('result', (int _) => _result);
+
+    // ignore: undefined_prefixed_name
+    ui.platformViewRegistry.registerViewFactory('image', (int _) => _image);
   }
 
   Future<html.MediaStream?> _openCamera() async {
-    final html.MediaStream? stream = await html.window.navigator.mediaDevices
-        ?.getUserMedia({'video': true, 'audio': true});
+    final html.MediaStream? stream =
+        await html.window.navigator.mediaDevices?.getUserMedia({
+      'video': {
+        'frameRate': {'ideal': 30, 'max': 30}
+      },
+      'audio': true
+    });
     _preview.srcObject = stream;
     return stream;
   }
 
   void startRecording(html.MediaStream stream) {
     _recorder = html.MediaRecorder(stream);
-    _recorder.start();
+    // This will trigger the 'dataavailable' event every 1000ms
+    _recorder.start(1000);
 
     html.Blob blob = html.Blob([]);
 
     _recorder.addEventListener('dataavailable', (event) {
       blob = js.JsObject.fromBrowserObject(event)['data'];
+      // Method 1: This blob has 30 frames of data, possibly use this data retrieve the first frame?
+      // IM - 30 frames of data (1 second of video at 30fps)
+      // Method 2: Alternatively, it is easier to just take a photo from the stream
+      // This can be optimized
+      stream.getVideoTracks().forEach((track) {
+        if (track.readyState == 'live') {
+          html.ImageCapture imageCapture = html.ImageCapture(track);
+          imageCapture.takePhoto().then((blob) {
+            final url = html.Url.createObjectUrl(blob);
+            final img = html.ImageElement(src: url);
+            _image.src = img.src;
+          });
+        }
+      });
     }, true);
 
     _recorder.addEventListener('stop', (event) {
@@ -63,9 +90,9 @@ class _MyAppState extends State<MyApp> {
       _result.src = url;
 
       final anchor = html.AnchorElement()
-      ..href = _result.src
-      ..style.display = 'none'
-      ..download = 'recording.webm';
+        ..href = _result.src
+        ..style.display = 'none'
+        ..download = 'recording.webm';
       html.document.body!.children.add(anchor);
       anchor.click();
       html.document.body!.children.remove(anchor);
@@ -82,7 +109,6 @@ class _MyAppState extends State<MyApp> {
   void stopRecording() {
     _recorder.stop();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -148,6 +174,20 @@ class _MyAppState extends State<MyApp> {
                 child: HtmlElementView(
                   key: UniqueKey(),
                   viewType: 'result',
+                ),
+              ),
+              Text(
+                'Last Image',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 10.0),
+                width: 300,
+                height: 200,
+                color: Colors.blue,
+                child: HtmlElementView(
+                  key: UniqueKey(),
+                  viewType: 'image',
                 ),
               ),
             ],
